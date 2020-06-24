@@ -44,27 +44,28 @@ void testConstructor()
 void testCopyConstructorAndAssignment()
 {
     Matrix<int> m1 = Matrix<int>(Dimensions(3,3), 5);
-    Matrix<float> m2 = Matrix<float>(Dimensions(10,12), 3491.54f);
+    Matrix<float> m2 = Matrix<float>(Dimensions(10,12), 122.54f);
     Matrix<int> m3= Matrix<int>(Dimensions(2,2));
     cout<< m3<<"\n";
     m3 = m1;
     Matrix<float> m4 = m2;
-    Matrix<std::string> m5 = mtm::Matrix<std::string>(Dimensions(1,1), "hamburger");
-    try
+    m4(0,0) = 0;
+    Matrix<std::string> m5 = mtm::Matrix<std::string>(Dimensions(2,2), "hamburger");
+    /*try
     {
         Matrix<float> m6 = mtm::Matrix<float>(Dimensions(0, 2), 3.4f);
     }
     catch(const Matrix<float>::IllegalInitialization & e)
     {
         cout<< e.what()<< "\n";
-    }
-    Matrix<std::string> m_string=Matrix<std::string>(Dimensions(2,12),"2");
+    }*/
+    Matrix<std::string> m_string = Matrix<std::string>(Dimensions(2,12),"hamburger");
 
     cout << m_string << "\n";
-    m_string=m5;
-    cout << m3 << "\n";
-    cout << m4 << "\n";
-    cout << m_string << "\n";
+    m_string = m5;
+    //cout << m3 << "\n";
+    //cout << m4 << "\n";
+    //cout << m_string << "\n";
 
 }
 
@@ -299,20 +300,20 @@ int multiplyByTwo(int num)
 {
     return num * 2;
 }
-/*void testApply()
+void testApply()
 {
     int (*func_pointer)(int) = &multiplyByTwo;
 
     Matrix<int> diagonal2 = Matrix<int>::Diagonal(3, 3);
-    cout << diagonal2.apply(multiplyByTwo(2)) << "\n";
+    cout << diagonal2.apply(func_pointer) << "\n";
     cout << diagonal2.apply(DivideByTwo()) << "\n";
-}*/
+}
 
 int main() {
     //elad
-    testConstructor();
+    //testConstructor();
     testCopyConstructorAndAssignment();
-    testIdentity();
+    /*testIdentity();
     testQuestionDimensions();
     testTranspose();
     testAdditionAndMinus();
@@ -322,7 +323,7 @@ int main() {
     testAllAny();
     testIterator();
     testConstIterator();
-    //testApply();
+    testApply();*/
     return 0;
 }
 

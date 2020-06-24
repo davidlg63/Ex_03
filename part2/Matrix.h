@@ -7,7 +7,6 @@
 #include ".Auxiliaries.h"
 #include <exception>
 #include <string>
-#include "ArrayWrapper.h"
 
 namespace  mtm
 {
@@ -17,12 +16,12 @@ namespace  mtm
     private:
         Dimensions dimensions;
         T** data;
-        void CreateArray( Dimensions dim);
+        void CreateArray();
         /*In the SetData function we assume that if the data is a complex datatype than it  has its own
         assigment operator*/
-        void SetData(Dimensions dim, T value);
+        void SetData(T value);
         static bool illegalDimensions(int i, int j, Dimensions dim);
-
+        void deleteMatrix(T** matrix, int number_of_initialized_columns);
     public:
 
         Matrix(Dimensions dims, T value = T());
@@ -92,7 +91,7 @@ namespace  mtm
          * than the datatype has its own relevant operator as the function */
 
         template <class Operation>
-        Matrix apply(const Operation o) const; /*Assumption: o is an object which implements operator() and accepts a
+        Matrix apply(Operation o) const; /*Assumption: o is an object which implements operator() and accepts a
             generic parameter T + returns a T.*/
 
         class iterator
@@ -176,7 +175,7 @@ namespace  mtm
         }
         iterator end()
         {
-            return typename Matrix<T>::iterator::iterator(this, dimensions.getRow() - 1, dimensions.getCol() - 1);
+            return typename Matrix<T>::iterator::iterator(this, dimensions.getRow(), 0);
         }
         const_iterator begin() const
         {
@@ -184,8 +183,8 @@ namespace  mtm
         }
         const_iterator end() const
         {
-            return typename Matrix<T>::const_iterator::const_iterator(this, dimensions.getRow() - 1,
-                    dimensions.getCol() - 1);
+            return typename Matrix<T>::const_iterator::const_iterator(this, dimensions.getRow(),
+                    0);
         }
 
         class AccessIllegalElement : std::exception
@@ -238,20 +237,22 @@ namespace  mtm
             throw Matrix<T>::IllegalInitialization();
         }
 
-        this->CreateArray(dim);
-        this->SetData(dim,value);
+        this->CreateArray();
+        this->SetData(value);
 
     }
 
     template <class T>
     Matrix<T>::Matrix(const Matrix<T>& mat_to_copy): dimensions(mat_to_copy.dimensions)
     {
-        this->CreateArray(mat_to_copy.dimensions);
+        this->CreateArray();
         for (int i=0; i< dimensions.getRow(); i++)
         {
             for (int j=0; j< dimensions.getRow(); j++)
             {
+                std::cout<<mat_to_copy.data[i][j]<<std::endl;
                 data[i][j]= mat_to_copy.data[i][j];
+                std::cout<<data[i][j]<<std::endl<<"\n";
             }
         }
     }
@@ -259,7 +260,7 @@ namespace  mtm
     template <class T>
     Matrix<T>::~Matrix()
     {
-        for(int i=0; i<dimensions.getRow(); i++)
+        for(int i = 0; i < dimensions.getRow(); i++)
         {
             delete[] data[i];
         }
@@ -529,22 +530,33 @@ namespace  mtm
     }
 
     template <class T>
-    void  Matrix<T>::CreateArray(const Dimensions dim)
+    void  Matrix<T>::CreateArray()
     {
-
-        data[0] = ArrayWrapper<T>(dim.getRow()).getArray();
-        for (int i=0; i<dim.getRow(); i++)
+        data = new T*[dimensions.getRow()];
+        int counter = 0;
+        for (int i=0; i < dimensions.getRow(); i++)
         {
-            data[i] = ArrayWrapper<T>(dim.getCol()).getArray();
+            try
+            {
+                data[i] = new T[dimensions.getCol()];
+            }
+
+            catch (std::bad_alloc& memory_error)
+            {
+                deleteMatrix(data, counter);
+                throw memory_error;
+            }
+
+            counter++;
         }
     }
 
     template <class T>
-    void Matrix<T>::SetData(Dimensions dim, T value)
+    void Matrix<T>::SetData(T value)
     {
-        for(int i=0 ;i<dim.getRow(); i++)
+        for(int i=0 ;i < dimensions.getRow(); i++)
         {
-            for(int j=0; j<dim.getCol(); j++)
+            for(int j=0; j < dimensions.getCol(); j++)
             {
                 data[i][j]= value;
             }
@@ -562,16 +574,94 @@ namespace  mtm
     template <typename Operation>
     Matrix<T> Matrix<T>::apply(Operation op) const
     {
-        Matrix<T> result(dimensions);
+        Matrix<T> result = *this;
         for(int i = 0; i < dimensions.getRow(); i++)
         {
             for(int j = 0; j < dimensions.getCol(); j++)
             {
-                result(i,j) = op(data(i,j));
+                op(result(i,j));
+                //result(i,j) = op(data(i,j));
             }
         }
         return result;
     }
 
+    //iterator Methods start here:
+    //.......................................................................................................
+    template<class T>
+    T&  Matrix<T>::iterator::operator*() {
+        if (current_row < 0 || current_row >= matrix->dimensions.getRow() ||
+        current_column < 0 || current_column >= matrix->dimensions.getCol()) {
+            throw AccessIllegalElement();
+        }
+        return matrix->data[current_row][current_column];
+    }
+
+    template<class T>
+    typename Matrix<T>::iterator& Matrix<T>::iterator::operator++() {
+        if (current_column == matrix->dimensions.getCol() - 1) {
+            current_column = 0;
+            current_row++;
+        } else {
+            current_column++;
+        }
+
+        return *this;
+    }
+
+    template <class T>
+    typename Matrix<T>::iterator Matrix<T>::iterator::operator++(int)
+    {
+        iterator temp = *this;
+        ++*this;
+        return temp;
+    }
+
+    //const_iterator Methods start here:
+    //..........................................................................................................
+    template<class T>
+    const T& Matrix<T>::const_iterator::operator*()
+    {
+        if (current_row < 0 || current_row >= matrix->dimensions.getRow() ||
+        current_column < 0 ||current_column >=matrix->dimensions.getCol())
+        {
+            throw AccessIllegalElement();
+        }
+        return matrix->data[current_row][current_column];
+    }
+
+    template<class T>
+    typename Matrix<T>::const_iterator& Matrix<T>::const_iterator::operator++()
+    {
+        if (current_column == matrix->dimensions.getCol() - 1)
+        {
+            current_column = 0;
+            current_row++;
+        }
+        else
+        {
+            current_column++;
+        }
+
+        return *this;
+    }
+
+    template <class T>
+    typename Matrix<T>::const_iterator Matrix<T>::const_iterator::operator++(int)
+    {
+        const_iterator temp = *this;
+        ++*this;
+        return temp;
+    }
+
+    template <class T>
+    void Matrix<T>::deleteMatrix(T** matrix, int number_of_initialized_columns)
+    {
+        for(int i = number_of_initialized_columns; i > 0; i--)
+        {
+            delete[] matrix[i - 1];
+        }
+        delete[] matrix;
+    }
 }
 #endif //EX03_MATRIX_H

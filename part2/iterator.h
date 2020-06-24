@@ -4,7 +4,7 @@
 namespace mtm
 {
     template<class T>
-    T& Matrix<T>::iterator::operator*() {
+    T&  Matrix<T>::iterator::operator*() {
         if (current_row < 0 || current_row >= matrix->dims.getRow() || current_column < 0 || current_column >=
                                                                                              matrix->dims.getCol()) {
             throw AccessIllegalElement();
