@@ -16,12 +16,13 @@ namespace  mtm
     private:
         Dimensions dimensions;
         T** data;
-        void CreateArray();
+
+        T** Create2DArray(int height, int width);
+        void deleteMatrix(T** matrix, int number_of_initialized_columns);
         /*In the SetData function we assume that if the data is a complex datatype than it  has its own
         assigment operator*/
         void SetData(T value);
         static bool illegalDimensions(int i, int j, Dimensions dim);
-        void deleteMatrix(T** matrix, int number_of_initialized_columns);
     public:
 
         Matrix(Dimensions dims, T value = T());
@@ -30,6 +31,7 @@ namespace  mtm
         Matrix(const Matrix&);
         /* in the d'tor, we will assume that if the matrix contains a complex datatype,
          * than the datatype has its own d'tor */
+        Matrix& operator=(const Matrix& to_copy);
         ~Matrix();
         static Matrix<T> Diagonal( int dimensions,  T value = T());
         /* In the transpose function we will assume that if the matrix contains a complex datatype,
@@ -71,7 +73,7 @@ namespace  mtm
 
         int size() const
         {
-            return dimensions.getCol() * dimensions.getCol();
+            return dimensions.getRow() * dimensions.getCol();
         }
         /* in the following comparision function, We assume that if T is complex datatype, than it has the
          * comparision operator necessary for our code to compile. */
@@ -217,7 +219,7 @@ namespace  mtm
             const char* what() const noexcept override
             {
                 std::string return_message = "Mtm matrix error: Dimension mismatch: "
-                                             + this->first_mat.dimensions.toString() + this->second_mat.dimensions.toString();
+                        + this->first_mat.dimensions.toString() + " " + this->second_mat.dimensions.toString();
                 const char *error_message = return_message.c_str();
                 return error_message;
             }
@@ -232,12 +234,12 @@ namespace  mtm
     template<class T>
     Matrix<T>::Matrix(const Dimensions dim, T value) : dimensions(dim)
     {
-        if(dim.getCol()<=0 ||dim.getRow()<=0)
+        if(dim.getCol()<=0 || dim.getRow()<=0)
         {
             throw Matrix<T>::IllegalInitialization();
         }
 
-        this->CreateArray();
+        this->data = Matrix<T>::Create2DArray(dimensions.getRow(), dimensions.getCol());
         this->SetData(value);
 
     }
@@ -245,26 +247,53 @@ namespace  mtm
     template <class T>
     Matrix<T>::Matrix(const Matrix<T>& mat_to_copy): dimensions(mat_to_copy.dimensions)
     {
-        this->CreateArray();
-        for (int i=0; i< dimensions.getRow(); i++)
+        this->data = Matrix<T>::Create2DArray(dimensions.getRow(), dimensions.getCol());
+        for (int i=0; i < dimensions.getRow(); i++)
         {
-            for (int j=0; j< dimensions.getRow(); j++)
+            for (int j=0; j < dimensions.getCol(); j++)
             {
-                std::cout<<mat_to_copy.data[i][j]<<std::endl;
+                //std::cout<<mat_to_copy.data[i][j]<<std::endl;
                 data[i][j]= mat_to_copy.data[i][j];
-                std::cout<<data[i][j]<<std::endl<<"\n";
+                //std::cout<<data[i][j]<<std::endl<<"\n";
             }
         }
     }
 
     template <class T>
+    Matrix<T>& Matrix<T>::operator=(const Matrix<T>& mat_to_copy)
+    {
+        if (this==&mat_to_copy)
+        {
+            return *this;
+        }
+        Dimensions copy_dim(mat_to_copy.height(),mat_to_copy.width());
+        T**  copied_data = Matrix<T>::Create2DArray(copy_dim.getRow(),copy_dim.getCol()) ;
+        for (int i=0; i<mat_to_copy.height();i++)
+        {
+            for (int j=0; j<mat_to_copy.width(); j++)
+            {
+                try
+                {
+                    copied_data[i][j] = mat_to_copy.data[i][j];
+                }
+                catch (std::exception& some_error)
+                {
+                    Matrix<T>::deleteMatrix(copied_data,mat_to_copy.width());
+                    throw some_error;
+                }
+            }
+        }
+        Matrix<T>::deleteMatrix(this->data,dimensions.getRow());
+        this->data = copied_data;
+        this->dimensions = copy_dim;
+        return  *this;
+
+    }
+
+    template <class T>
     Matrix<T>::~Matrix()
     {
-        for(int i = 0; i < dimensions.getRow(); i++)
-        {
-            delete[] data[i];
-        }
-        delete[] data;
+       deleteMatrix(data,dimensions.getRow());
     }
 
 
@@ -302,11 +331,11 @@ namespace  mtm
     template <class T>
     Matrix<T>& Matrix<T>::operator+=(const Matrix<T>& mat1)
     {
-        for(int i=0; i<dimensions.getRow();i++)
+        for(int i=0; i < dimensions.getRow();i++)
         {
             for (int j = 0; j < dimensions.getCol(); j++)
             {
-                data[i][j]=mat1(i,j) ;
+                data[i][j] += mat1(i,j) ;
             }
         }
         return *this;
@@ -507,8 +536,8 @@ namespace  mtm
         {
             throw typename Matrix<T>::DimensionMismatch(mat1,mat2);
         }
-        Matrix<T> tmp= mat1;
-        return  tmp+=mat2;
+        Matrix<T> tmp = mat1;
+        return tmp += mat2;
     }
 
     template<class T>
@@ -518,8 +547,8 @@ namespace  mtm
         {
             throw typename Matrix<T>::DimensionMismatch(mat1 , mat2);
         }
-        Matrix<T> tmp = -mat1;
-        return  tmp+=mat2;
+        Matrix<T> tmp = -mat2;
+        return tmp += mat1;
     }
 
     template<class T>
@@ -527,28 +556,6 @@ namespace  mtm
     {
         std::ostream& output = printMatrix(os, output_matrix.begin(), output_matrix.end(), output_matrix.width());
         return output;
-    }
-
-    template <class T>
-    void  Matrix<T>::CreateArray()
-    {
-        data = new T*[dimensions.getRow()];
-        int counter = 0;
-        for (int i=0; i < dimensions.getRow(); i++)
-        {
-            try
-            {
-                data[i] = new T[dimensions.getCol()];
-            }
-
-            catch (std::bad_alloc& memory_error)
-            {
-                deleteMatrix(data, counter);
-                throw memory_error;
-            }
-
-            counter++;
-        }
     }
 
     template <class T>
@@ -654,12 +661,30 @@ namespace  mtm
         return temp;
     }
 
-    template <class T>
-    void Matrix<T>::deleteMatrix(T** matrix, int number_of_initialized_columns)
-    {
-        for(int i = number_of_initialized_columns; i > 0; i--)
+    template<class T>
+    T** Matrix<T>::Create2DArray(int height, int width) {
+        T **data = new T *[height];
+
+        for (int i = 0; i < height; i++)
         {
-            delete[] matrix[i - 1];
+            try
+            {
+                data[i] = new T[width];
+            }
+
+            catch (std::bad_alloc &memory_error) {
+                Matrix<T>::deleteMatrix(data, i);
+                throw memory_error;
+            }
+        }
+        return data;
+    }
+
+    template<class T>
+    void Matrix<T>::deleteMatrix(T **matrix, int number_of_initialized_columns) {
+        for (int i = 0; i < number_of_initialized_columns; i++)
+        {
+            delete[] matrix[i];
         }
         delete[] matrix;
     }
