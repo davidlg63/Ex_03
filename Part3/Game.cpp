@@ -3,6 +3,9 @@
 //
 
 #include "Game.h"
+#include "Solider.h"
+#include "Sniper.h"
+#include "Medic.h"
 
 namespace  mtm
 {
@@ -103,6 +106,6 @@ namespace  mtm
     }
 
     bool Game::isLegalInitialization(units_t health, units_t ammo, units_t range, units_t power) {
-        return !(health <= 0 || ammo<0 || range < 0 || power < 0);
+        return (health <= 0 || ammo<0 || range < 0 || power < 0);
     }
 }
