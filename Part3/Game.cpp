@@ -18,7 +18,8 @@ using iterator = mtm::Matrix<shared_ptr<Character>>::iterator;
 namespace mtm
 {
     Game::Game(int height, int width) : board((height > 0 && width > 0) ?
-    (Matrix<shared_ptr<Character>>(Dimensions(height, width), nullptr)) : throw IllegalArgument())
+    (Matrix<shared_ptr<Character>>(Dimensions(height, width), nullptr)) : throw IllegalArgument()),
+    cpp_counter(0), python_counter(0)
     {}
 
     Game::Game(const mtm::Game &other) :
@@ -81,7 +82,7 @@ namespace mtm
             throw IllegalCell();
         }
 
-        if(isCellEmpty(src_coordinates) || isCellEmpty(dst_coordinates))
+        if(isCellEmpty(src_coordinates))
         {
             throw CellEmpty();
         }
@@ -98,17 +99,15 @@ namespace mtm
         
         attacker->attack(src_coordinates, dst_coordinates, board);
 
-        attacker = attacker->getHealth() == 0 ? nullptr : attacker;
-        target = target->getHealth() == 0 ? nullptr : target;
-
+        board(src_coordinates.row, src_coordinates.col) = attacker->getHealth() == 0 ? nullptr : attacker;
+        board(dst_coordinates.row, dst_coordinates.col) = (target == nullptr||target->getHealth() == 0)?nullptr:target;
     }
 
     std::ostream& operator<<(std::ostream& os, const Game& game)
     {
-        const std::string game_string = game.toCharArray(game.board);
+        const std::string game_string = game.toCharArray();
         const char* output = game_string.c_str();
-        std::cout << game.board.width() - 1;
-        return printGameBoard(os, output, output + game.board.width() - 1, game.board.width());
+        return printGameBoard(os, output, output + game.board.size(), game.board.width());
     }
 
     void Game::addCharacter(const GridPoint &coordinates, std::shared_ptr<Character> character) {
@@ -150,11 +149,11 @@ namespace mtm
 
     void Game::reload(const GridPoint & coordinates)
     {
-        if (isInBoard(coordinates))
+        if (!isInBoard(coordinates))
         {
             throw IllegalCell();
         }
-        if (!(isCellEmpty(coordinates)))
+        if (isCellEmpty(coordinates))
         {
             throw CellEmpty();
         }
@@ -186,16 +185,16 @@ namespace mtm
 
     bool Game::isCellEmpty(const GridPoint& coordinate) const
     {
-        return (board(coordinate.row, coordinate.col) == nullptr);
+        shared_ptr<Character> character = board(coordinate.row, coordinate.col);
+        return (character == nullptr);
     }
 
-    std::string Game::toCharArray(const Matrix<std::shared_ptr<Character>>& board)
+    const std::string Game::toCharArray() const
     {
         std::string result;
-        int counter = 0;
-        for(const_iterator cell = board.begin(); cell != board.end(); cell++, counter++)
+        for(const_iterator cell = board.begin(); cell != board.end(); cell++)
         {
-            result[counter] = (*cell == nullptr) ? ' ' : (*cell)->toChar();
+            result += (*cell == nullptr) ? ' ' : (*cell)->toChar();
         }
         return result;
     }

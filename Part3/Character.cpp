@@ -3,10 +3,12 @@
 //
 
 #include "Character.h"
+#include <cmath>
+
 
 namespace  mtm
 {
-    Character::Character(Team team, units_t  unit_health, units_t unit_ammo, units_t unit_power, units_t unit_range) :
+    Character::Character(Team team, units_t  unit_health, units_t unit_ammo, units_t unit_range, units_t unit_power) :
             team(team), health(unit_health), ammo(unit_ammo), power(unit_power), range(unit_range)
     {}
 

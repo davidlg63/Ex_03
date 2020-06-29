@@ -18,12 +18,13 @@ namespace mtm
         Character* clone() const;
     public:
         Sniper() = delete;
-        Sniper(Team team, units_t  unit_health, units_t unit_ammo, units_t unit_power, units_t unit_range);
+        Sniper(Team team, units_t  unit_health, units_t unit_ammo, units_t unit_range, units_t unit_power);
         Sniper(std::shared_ptr<Sniper> some_character);
         ~Sniper() override = default ;
 
         void reload() override;
-        void attack ( GridPoint attacker,  GridPoint target, Matrix<std::shared_ptr<Character>> board) override;
+        void attack (const GridPoint attacker, const GridPoint target, Matrix<std::shared_ptr<Character>>& board)
+        override;
         bool isInRange ( GridPoint src_coordinates, GridPoint dst_coordinates) const override ;
 
         char toChar() const override
@@ -34,4 +35,5 @@ namespace mtm
     };
 
 }
+
 #endif //PART3_SNIPER_H

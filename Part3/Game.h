@@ -20,8 +20,7 @@ namespace mtm
 
     bool isInBoard(const GridPoint& coordinate) const;
     bool isCellEmpty(const GridPoint& coordinate) const;
-    bool isInRange(const GridPoint& src_coordinate, const GridPoint& dst_coordinate) const;
-    static std::string toCharArray(const Matrix<std::shared_ptr<Character>>& board);
+    const std::string toCharArray() const;
     public:
         Game(int height, int width);
         ~Game() = default;

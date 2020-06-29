@@ -3,29 +3,21 @@
 //
 
 #include "Medic.h"
-#include "Exception.h"
 
 namespace mtm
 {
 
-    Medic::Medic(Team team, units_t  unit_health, units_t unit_ammo, units_t unit_power, units_t unit_range):
-            Character(team, unit_health, unit_ammo, unit_power, unit_range)
+    Medic::Medic(Team team, units_t  unit_health, units_t unit_ammo, units_t unit_range, units_t unit_power):
+            Character(team, unit_health, unit_ammo, unit_range, unit_power)
     {
-        if (team==PYTHON) {
-            this->print_representation = 'm';
-        }
-        this->print_representation ='M';
+        print_representation = (team == PYTHON) ? 'm' : 'M';
     }
 
     Medic::Medic(std::shared_ptr<Medic> some_character) :
             Character(some_character->askTeam(), some_character->getHealth(), some_character->getAmmo(),
-                      some_character->getPower(), some_character->getRange())
+                      some_character->getRange(), some_character->getPower())
     {
-        if (team==PYTHON)
-        {
-            this->print_representation = 'm';
-        }
-        this->print_representation ='M';
+        print_representation = (team == PYTHON) ? 'm' : 'M';
     }
 
     Character* Medic::clone() const
@@ -38,9 +30,9 @@ namespace mtm
         this->ammo+=medic_reload_amount;
     }
 
-    void Medic::attack(const GridPoint attacker, const GridPoint target, Matrix<std::shared_ptr<Character>> board)
+    void Medic::attack(const GridPoint attacker, const GridPoint target, Matrix<std::shared_ptr<Character>>& board)
     {
-        if (attacker == target)
+        if (attacker == target || board(target.row, target.col) == nullptr)
         {
             throw IllegalTarget();
         }
@@ -51,7 +43,6 @@ namespace mtm
         }
         board(target.row,target.col)->setHealth(this->power);
         this->ammo--;
-
     }
 
     bool Medic::isInRange(GridPoint src_coordinates, GridPoint dst_coordinates) const

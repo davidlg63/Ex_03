@@ -22,7 +22,7 @@ namespace mtm
     IllegalArgument::IllegalArgument() : GameException("IllegalArgument")
     {}
 
-    IllegalCell::IllegalCell() : GameException("IllegalArgument")
+    IllegalCell::IllegalCell() : GameException("IllegalCell")
     {}
 
     CellEmpty::CellEmpty() : GameException("CellEmpty")

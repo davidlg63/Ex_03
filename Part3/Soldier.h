@@ -1,11 +1,9 @@
-
 //
 // Created by X on 28/06/2020.
 //
+
 #ifndef PART3_SOLIDER_H
 #define PART3_SOLIDER_H
-
-#include "Character.h"
 
 #include "Character.h"
 #include <cmath>
@@ -20,12 +18,13 @@ namespace mtm{
         Character* clone() const;
     public:
         Soldier() = delete;
-        Soldier(Team team, units_t  unit_health, units_t unit_ammo, units_t unit_power, units_t unit_range);
+        Soldier(Team team, units_t  unit_health, units_t unit_ammo, units_t unit_range, units_t unit_power);
         Soldier(std::shared_ptr<Soldier> some_character);
         ~Soldier() override = default ;
         void reload() override;
-        void attack ( GridPoint attacker,  GridPoint target, Matrix<std::shared_ptr<Character>> board) override ;
-        void attackHalfHealth (std::shared_ptr<Character> target) const;
+        void attack (const GridPoint attacker, const GridPoint target,
+                Matrix<std::shared_ptr<Character>>& board) override ;
+        void attackHalfHealth (std::shared_ptr<Character> target);
         bool isInRange ( GridPoint src_coordinates, GridPoint dst_coordinates) const override ;
 
         char toChar() const override
@@ -38,9 +37,5 @@ namespace mtm{
 
 }
 
-}
 
-
-
-
-#endif //PART3_SOLDIER_H
+#endif //PART3_SOLIDER_H

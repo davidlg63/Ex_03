@@ -23,9 +23,9 @@ void example1() {
 	g1.addCharacter(GridPoint(1,4), Game::makeCharacter(CharacterType::SNIPER, Team::CPP, 10, 2, 4, 5));
 	g1.addCharacter(GridPoint(6,1), Game::makeCharacter(CharacterType::SOLDIER, Team::PYTHON, 10, 2, 4, 5));
 	g1.addCharacter(GridPoint(6,4), Game::makeCharacter(CharacterType::MEDIC, Team::PYTHON, 10, 2, 4, 5));
-	//std::cout << g1 << std::endl;
+	std::cout << g1 << std::endl;
 	g1.move(GridPoint(1,1), GridPoint(1,2));
-	//std::cout << g1 << std::endl;
+	std::cout << g1 << std::endl;
 	
 	
 	try {
@@ -41,7 +41,7 @@ void example1() {
 	}
 	
 	g1.move(GridPoint(1,4), GridPoint(3,2));
-	//std::cout << g1 << std::endl;
+	std::cout << g1 << std::endl;
 	try {
 		g1.attack(GridPoint(1,4), GridPoint(6,4)); // character moved away
 	} catch (const mtm::CellEmpty& e) {
@@ -51,7 +51,7 @@ void example1() {
 	g1.attack(GridPoint(3,2), GridPoint(6,1)); // now it can hit
 	
 	g1.move(GridPoint(6,1), GridPoint(4,2));
-	//std::cout << g1 << std::endl;
+	std::cout << g1 << std::endl;
 	
 	try {
 		g1.attack(GridPoint(3,2), GridPoint(4,2)); // sniper can't attack close targets
@@ -60,10 +60,10 @@ void example1() {
 	}
 	
 	g1.move(GridPoint(4,2), GridPoint(6,2));
-	//std::cout << g1 << std::endl;
+	std::cout << g1 << std::endl;
 	
 	g1.attack(GridPoint(3,2), GridPoint(6,2)); // now it can hit
-	//std::cout << g1 << std::endl;
+	std::cout << g1 << std::endl;
 	
 	try {
 		g1.move(GridPoint(6,2), GridPoint(6,1)); // soldier was killed and removed
@@ -94,7 +94,7 @@ void example1() {
 	g1.reload(GridPoint(3,4));
 	g1.attack(GridPoint(3,4), GridPoint(6,4)); // now can shoot
 	
-	//std::cout << g1 << std::endl;
+	std::cout << g1 << std::endl;
 	
 	try {
 		g1.move(GridPoint(6,4), GridPoint(6,1)); // medic was killed and removed
