@@ -1,9 +1,11 @@
+
 //
 // Created by X on 28/06/2020.
 //
-
 #ifndef PART3_SOLIDER_H
 #define PART3_SOLIDER_H
+
+#include "Character.h"
 
 #include "Character.h"
 #include <cmath>
@@ -22,8 +24,8 @@ namespace mtm{
         Soldier(std::shared_ptr<Soldier> some_character);
         ~Soldier() override = default ;
         void reload() override;
-        void attack (const GridPoint attacker, const GridPoint target, Matrix<std::shared_ptr<Character>> board) override ;
-        void attackHalfHealth (std::shared_ptr<Character> target);
+        void attack ( GridPoint attacker,  GridPoint target, Matrix<std::shared_ptr<Character>> board) override ;
+        void attackHalfHealth (std::shared_ptr<Character> target) const;
         bool isInRange ( GridPoint src_coordinates, GridPoint dst_coordinates) const override ;
 
         char toChar() const override
@@ -36,5 +38,9 @@ namespace mtm{
 
 }
 
+}
 
-#endif //PART3_SOLIDER_H
+
+
+
+#endif //PART3_SOLDIER_H

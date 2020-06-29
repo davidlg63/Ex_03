@@ -23,7 +23,7 @@ namespace mtm
         ~Sniper() override = default ;
 
         void reload() override;
-        void attack (const GridPoint attacker, const GridPoint target, Matrix<std::shared_ptr<Character>> board) override;
+        void attack ( GridPoint attacker,  GridPoint target, Matrix<std::shared_ptr<Character>> board) override;
         bool isInRange ( GridPoint src_coordinates, GridPoint dst_coordinates) const override ;
 
         char toChar() const override
@@ -34,5 +34,4 @@ namespace mtm
     };
 
 }
-
 #endif //PART3_SNIPER_H

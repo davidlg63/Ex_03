@@ -3,6 +3,7 @@
 //
 
 #include "Medic.h"
+#include "Exception.h"
 
 namespace mtm
 {
@@ -41,15 +42,15 @@ namespace mtm
     {
         if (attacker == target)
         {
-            return;
+            throw IllegalTarget();
         }
         if (board(attacker.row,attacker.col)->askTeam()==board(target.row,target.col)->askTeam())
         {
             board(target.row,target.col)->setHealth(-this->power);
             return;
         }
-        this->ammo--;
         board(target.row,target.col)->setHealth(this->power);
+        this->ammo--;
 
     }
 

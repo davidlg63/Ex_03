@@ -1,3 +1,4 @@
+
 //
 // Created by X on 28/06/2020.
 //
@@ -35,16 +36,23 @@ namespace mtm{
 
     void Soldier::attack(const GridPoint attacker, const GridPoint target, Matrix<std::shared_ptr<Character>> board)
     {
-        board(target.row,target.col)->setHealth(this->power);
-        this->ammo--;
-        for (int i = target.row - range; i<2*range; i++)
+        if(board(target.row,target.col)!=nullptr)
         {
-            for ( int j= target.col - range; j<2*range; j++)
+            board(target.row,target.col)->setHealth(this->power);
+        }
+        this->ammo--;
+        for (int i = target.row - collateral_dmg_range; i <2*collateral_dmg_range; i++)
+        {
+            for ( int j= target.col - collateral_dmg_range; j < 2*collateral_dmg_range; j++)
             {
+                if(i < 0 || i > board.height()-1 || j < 0 || j > board.width()-1)
+                {
+                    continue;
+                }
                 GridPoint collateral_damage(i,j);
                 int distance=collateral_damage.distance(collateral_damage,target);
                 if (distance != 0 && distance<=collateral_dmg_range && board(i,j)
-                    != nullptr && board(i,j)->askTeam()==team)
+                                                                       != nullptr && board(i,j)->askTeam()!=team)
                 {
                     attackHalfHealth(board(i,j));
                     if (board(i,j)->getHealth()<=0)
@@ -56,7 +64,7 @@ namespace mtm{
         }
     }
 
-    void Soldier::attackHalfHealth (std::shared_ptr<Character> target)
+    void Soldier::attackHalfHealth (std::shared_ptr<Character> target) const
     {
         target->setHealth(this->power/2);
     }

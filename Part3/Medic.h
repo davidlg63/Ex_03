@@ -1,3 +1,4 @@
+
 //
 // Created by X on 28/06/2020.
 //
@@ -22,7 +23,7 @@ namespace  mtm
         ~Medic() override = default;
         //Medic &operator=(std::shared_ptr<Character> some_character) override;
         void reload() override;
-        void attack(const GridPoint attacker, const GridPoint target, Matrix<std::shared_ptr<Character>> board) override;
+        void attack( GridPoint attacker,  GridPoint target, Matrix<std::shared_ptr<Character>> board) override;
         bool isInRange(GridPoint src_coordinates, GridPoint dst_coordinates) const override;
 
         char toChar() const override {
@@ -32,5 +33,6 @@ namespace  mtm
     };
 
 }
+
 
 #endif //PART3_MEDIC_H

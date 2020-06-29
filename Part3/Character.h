@@ -2,11 +2,12 @@
 // Created by X on 27/06/2020.
 //
 
+
 #ifndef PART3_CHARACTER_H
 #define PART3_CHARACTER_H
 #include "Auxiliaries.h"
 #include <memory>
-#include "Matrix.h"
+#include "C:\Users\X\Desktop\ClionCodes\CLionProjects\hw3\Part2\Matrix.h"
 
 
 namespace mtm
@@ -22,10 +23,10 @@ namespace mtm
         Character(Team team, units_t  unit_health, units_t unit_ammo, units_t unit_power, units_t unit_range);
         virtual ~Character() = default;
         Character& operator=(const std::shared_ptr<Character> some_character);
-        virtual bool isInRange(const GridPoint src_coordinates,const GridPoint dst_coordinates) const = 0;
+        virtual bool isInRange( GridPoint src_coordinates, GridPoint dst_coordinates) const = 0;
         virtual void reload() = 0;
         virtual char toChar() const = 0;
-        virtual void attack(const GridPoint attacker,const GridPoint target,Matrix<std::shared_ptr<Character>>board) =0;
+        virtual void attack( GridPoint attacker, GridPoint target,Matrix<std::shared_ptr<Character>>board) =0;
 
         Team askTeam() const
         {

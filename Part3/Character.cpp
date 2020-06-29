@@ -3,8 +3,6 @@
 //
 
 #include "Character.h"
-#include <cmath>
-
 
 namespace  mtm
 {
