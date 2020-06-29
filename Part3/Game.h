@@ -1,53 +1,46 @@
 //
-// Created by X on 27/06/2020.
+// Created by David on 25/06/2020.
 //
 
-#ifndef PART3_GAME_H
-#define PART3_GAME_H
+#ifndef EX03_GAME_H
+#define EX03_GAME_H
+
 #include "Auxiliaries.h"
-#include <memory>
+#include "Matrix.h"
 #include "Character.h"
-#include "C:\Users\X\Desktop\ClionCodes\CLionProjects\hw3\Part2\Matrix.h"
+#include <memory>
 
-namespace mtm {
+namespace mtm
+{
+    class Game
+    {
+    private:
+    Matrix<std::shared_ptr<mtm::Character>> board;
+    int cpp_counter, python_counter;
 
-    class Game {
-        Matrix<std::shared_ptr<Character>> board;
-        int height;
-        int width;
-        int phy_counter;
-        int cpp_counter;
-
+    bool isInBoard(const GridPoint& coordinate) const;
+    bool isCellEmpty(const GridPoint& coordinate) const;
+    bool isInRange(const GridPoint& src_coordinate, const GridPoint& dst_coordinate) const;
+    static std::string toCharArray(const Matrix<std::shared_ptr<Character>>& board);
     public:
-
         Game(int height, int width);
         ~Game() = default;
+        Game(const Game& other);
+        Game& operator=(const Game& other);
 
-        void addCharacter(const GridPoint &coordinates, std::shared_ptr<Character> character);
-        static std::shared_ptr<Character> makeCharacter(CharacterType type, Team team,
+        void addCharacter(const GridPoint& coordinates, std::shared_ptr<Character> character);
+        static std::shared_ptr<mtm::Character> makeCharacter(CharacterType type, Team team,
                                                         units_t health, units_t ammo, units_t range, units_t power);
 
         void move(const GridPoint & src_coordinates, const GridPoint & dst_coordinates);
+        void attack(const GridPoint & src_coordinates, const GridPoint & dst_coordinates);
         void reload(const GridPoint & coordinates);
 
-        bool isOver(Team* winningTeam= nullptr) const;
-
-        int Height() {
-            return this->height;
-        }
-
-        int Width() {
-            return this->width;
-        }
-
-        bool isOccupied(GridPoint coordinates);
-        bool isLegalInitialization(units_t health, units_t ammo, units_t range, units_t power);
-        bool isIllegalCell(GridPoint coordinates);
+        friend std::ostream& operator<<(std::ostream& os, const Game& game);
+        bool isOver(Team* winningTeam=NULL) const;
     };
 
-
+    bool isIllegalInitialization(units_t health, units_t ammo, units_t range, units_t power);
 }
 
-
-
-#endif //PART3_GAME_H
+#endif //EX03_GAME_H

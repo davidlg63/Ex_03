@@ -10,8 +10,9 @@
 namespace  mtm
 {
 
-    class Medic : Character {
-        static int medic_reload_amount;
+    class Medic : public Character
+    {
+        static const int medic_reload_amount = 5;
         char print_representation;
         Character* clone() const;
     public:

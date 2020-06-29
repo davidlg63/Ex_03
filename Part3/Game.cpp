@@ -1,67 +1,148 @@
 //
-// Created by X on 27/06/2020.
+// Created by David on 25/06/2020.
 //
 
 #include "Game.h"
-#include "Solider.h"
-#include "Sniper.h"
+#include "Auxiliaries.h"
+#include "Exception.h"
+#include "Character.h"
+#include "Soldier.h"
 #include "Medic.h"
+#include "Sniper.h"
+#include "Matrix.h"
 
-namespace  mtm
+using std::shared_ptr;
+using mtm::Character;
+using const_iterator = mtm::Matrix<shared_ptr<Character>>::const_iterator;
+using iterator = mtm::Matrix<shared_ptr<Character>>::iterator;
+namespace mtm
 {
-    void Game::addCharacter(const GridPoint &coordinates, std::shared_ptr<Character> character) {
+    Game::Game(int height, int width) : board((height > 0 && width > 0) ?
+    (Matrix<shared_ptr<Character>>(Dimensions(height, width), nullptr)) : throw IllegalArgument())
+    {}
 
-        /*if(isIllegalCell(coordinates))
+    Game::Game(const mtm::Game &other) :
+    board(Dimensions(other.board.height(), other.board.width()), nullptr)
+    {
+        this->board = other.board;
+    }
+
+    Game& Game::operator=(const Game& other)
+    {
+        if(this == &other)
+        {
+            return *this;
+        }
+
+        Game temp(other.board.height(), other.board.width());
+        try
+        {
+            temp.board = other.board;
+        }
+        catch(std::bad_alloc& memory_error)
+        {
+            std::cout << memory_error.what();
+            return *this;
+        }
+
+        this->board = temp.board;
+        return *this;
+    }
+    
+
+    std::shared_ptr<Character> Game::makeCharacter(CharacterType type, Team team,
+                                                    units_t health, units_t ammo, units_t range, units_t power)
+    {
+        if(isIllegalInitialization(health, ammo, range, power))
+        {
+            throw IllegalArgument();
+        }
+
+        switch(type)
+        {
+            case SOLDIER:
+                return shared_ptr<Character>(new Soldier(team, health, ammo, range, power));
+
+            case MEDIC:
+                return shared_ptr<Character>(new Medic(team, health, ammo, range, power));
+
+            case SNIPER:
+                return shared_ptr<Character>(new Sniper(team, health, ammo, range, power));
+        }
+        return nullptr; //should not reach this point.
+    }
+    
+    void Game::attack(const GridPoint & src_coordinates, const GridPoint & dst_coordinates)
+    {
+        shared_ptr<Character> attacker = board(src_coordinates.row, src_coordinates.col);
+        shared_ptr<Character> target = board(dst_coordinates.row, dst_coordinates.col);
+        if(!(isInBoard(src_coordinates)) || !(isInBoard(dst_coordinates)))
         {
             throw IllegalCell();
         }
-        if (isOccupied(coordinates))
+
+        if(isCellEmpty(src_coordinates) || isCellEmpty(dst_coordinates))
+        {
+            throw CellEmpty();
+        }
+
+        if(!(board(src_coordinates.row,src_coordinates.col)->isInRange(src_coordinates, dst_coordinates)))
+        {
+            throw OutOfRange();
+        }
+
+        if(attacker->isOutOfAmmo())
+        {
+            throw OutOfAmmo();
+        }
+        
+        attacker->attack(src_coordinates, dst_coordinates, board);
+
+        attacker = attacker->getHealth() == 0 ? nullptr : attacker;
+        target = target->getHealth() == 0 ? nullptr : target;
+
+    }
+
+    std::ostream& operator<<(std::ostream& os, const Game& game)
+    {
+        const std::string game_string = game.toCharArray(game.board);
+        const char* output = game_string.c_str();
+        std::cout << game.board.width() - 1;
+        return printGameBoard(os, output, output + game.board.width() - 1, game.board.width());
+    }
+
+    void Game::addCharacter(const GridPoint &coordinates, std::shared_ptr<Character> character) {
+
+        if(!isInBoard(coordinates))
+        {
+            throw IllegalCell();
+        }
+        if (!isCellEmpty(coordinates))
         {
             throw CellOccupied();
-        }*/
+        }
 
         this->board(coordinates.row, coordinates.col) = character;
     }
 
-    std::shared_ptr<Character> Game::makeCharacter(CharacterType type, Team team,
-                                                   units_t health, units_t ammo, units_t range, units_t power)
-    {
-        /*
-         if (!(isLegalInitialization(health,ammo,range,power))
-          {
-              throw IllegalArgument();
-          } */
-
-        switch (type) {
-            case SOLDIER :
-                return std::shared_ptr<Solider>(new Solider(team, health, ammo, power, range));
-
-            case MEDIC :
-                return std::shared_ptr<Medic>(new Medic(team, health, ammo, power, range));
-
-            case SNIPER:
-                return std::shared_ptr<Sniper>(new Sniper(team, health, ammo, power, range));
-        }
-    }
-
     void Game::move(const GridPoint & src_coordinates, const GridPoint & dst_coordinates)
     {
-        /*if (isIllegalCell(dst_coordinates))
+        if (!isInBoard(dst_coordinates))
         {
             throw IllegalCell();
         }
-        if (!(isOccupied(src_coordinates)))
+        if (isCellEmpty(src_coordinates))
         {
             throw CellEmpty();
         }
-        if (!(board(src_coordinates.row,src_coordinates.col)->isInRange(src_coordinates,dst_coordinates))
+        if (!(board(src_coordinates.row,src_coordinates.col)->isInRange(src_coordinates,dst_coordinates)))
         {
-            throw MoveTooFar;
+            throw MoveTooFar();
         }
-        if (isOccupied(dst_coordinates))
+        if (!isCellEmpty(dst_coordinates))
         {
             throw CellOccupied();
-        }*/
+        }
 
         board(dst_coordinates.row,dst_coordinates.col)=board(src_coordinates.row,src_coordinates.col);
         board(src_coordinates.row,src_coordinates.col)= nullptr;
@@ -69,14 +150,14 @@ namespace  mtm
 
     void Game::reload(const GridPoint & coordinates)
     {
-        /*if (isIllegalCell(coordinates))
+        if (isInBoard(coordinates))
         {
             throw IllegalCell();
         }
-        if (!(isOccupied(coordinates)))
+        if (!(isCellEmpty(coordinates)))
         {
             throw CellEmpty();
-        }*/
+        }
         board(coordinates.row,coordinates.col)->reload();
     }
 
@@ -84,28 +165,43 @@ namespace  mtm
     {
         if (winningTeam != nullptr)
         {
-            if (cpp_counter == 0 && phy_counter != 0) {
+            if (cpp_counter == 0 && python_counter != 0) {
                 *winningTeam = PYTHON;
                 return true;
-            } else if ((cpp_counter != 0 && phy_counter == 0)) {
+            } else if ((cpp_counter != 0 && python_counter == 0)) {
                 *winningTeam = CPP;
                 return true;
             }
             return false;
         }
-        return ((cpp_counter == 0 && phy_counter != 0) || (cpp_counter != 0  && phy_counter == 0));
+        return ((cpp_counter == 0 && python_counter != 0) || (cpp_counter != 0  && python_counter == 0));
     }
 
-
-    bool Game::isOccupied(GridPoint coordinates) {
-        return !(this->board(coordinates.row, coordinates.col) == nullptr);
+    //private help methods
+    bool Game::isInBoard(const GridPoint& coordinate) const
+    {
+        return (coordinate.row < board.height() && coordinate.row >= 0
+        && coordinate.col < board.width() && coordinate.col >= 0);
     }
 
-    bool Game::isIllegalCell(GridPoint coordinates) {
-        return (coordinates.row < 0 || coordinates.row > height || coordinates.col < 0 || coordinates.col > width);
+    bool Game::isCellEmpty(const GridPoint& coordinate) const
+    {
+        return (board(coordinate.row, coordinate.col) == nullptr);
     }
 
-    bool Game::isLegalInitialization(units_t health, units_t ammo, units_t range, units_t power) {
+    std::string Game::toCharArray(const Matrix<std::shared_ptr<Character>>& board)
+    {
+        std::string result;
+        int counter = 0;
+        for(const_iterator cell = board.begin(); cell != board.end(); cell++, counter++)
+        {
+            result[counter] = (*cell == nullptr) ? ' ' : (*cell)->toChar();
+        }
+        return result;
+    }
+    
+    bool isIllegalInitialization(units_t health, units_t ammo, units_t range, units_t power)
+    {
         return (health <= 0 || ammo<0 || range < 0 || power < 0);
     }
 }

@@ -6,56 +6,60 @@
 #define PART3_CHARACTER_H
 #include "Auxiliaries.h"
 #include <memory>
-#include "Game.h"
+#include "Matrix.h"
 
 
-
-namespace mtm {
-
+namespace mtm
+{
     class Character
     {
     protected:
         Team team;
         units_t health, ammo, power, range;
-        template <class>
         virtual Character* clone() const =0;
     public:
         Character() = delete;
         Character(Team team, units_t  unit_health, units_t unit_ammo, units_t unit_power, units_t unit_range);
-        virtual ~Character();
-        virtual Character* clone() const;
+        virtual ~Character() = default;
         Character& operator=(const std::shared_ptr<Character> some_character);
-        virtual bool isInRange(const GridPoint src_coordinates,const GridPoint dst_coordinates) const;
-        virtual  void reload();
-        virtual char toChar() const;
-        virtual  void attack(const GridPoint attacker, const GridPoint target, Matrix<std::shared_ptr<Character>> board);
+        virtual bool isInRange(const GridPoint src_coordinates,const GridPoint dst_coordinates) const = 0;
+        virtual void reload() = 0;
+        virtual char toChar() const = 0;
+        virtual void attack(const GridPoint attacker,const GridPoint target,Matrix<std::shared_ptr<Character>>board) =0;
 
-        Team askTeam() const  {
+        Team askTeam() const
+        {
             return this->team;
         }
 
-        units_t getRange() const  {
+        units_t getRange() const
+        {
             return this->range;
         }
 
-        units_t getAmmo() const  {
+        units_t getAmmo() const
+        {
             return this->range;
         }
 
-        units_t getHealth() const  {
+        units_t getHealth() const
+        {
             return this->health;
         }
 
-        void setHealth(int num)  {
+        void setHealth(int num)
+        {
             this->health -= num;
         }
 
-        units_t getPower() const  {
+        units_t getPower() const
+        {
             return this->power;
         }
 
-        bool isOutOfAmmo() const  {
-            return ammo == 0;
+        bool isOutOfAmmo() const
+        {
+            return (ammo == 0);
         }
     };
 }

@@ -9,9 +9,10 @@
 namespace mtm
 {
 
-    class Sniper :Character {
-        static int min_range;
-        static int Sniper_reload_amount;
+    class Sniper : public Character
+    {
+        int min_range;
+        static const int Sniper_reload_amount = 2;
         char print_representation;
         int shot_counter;
         Character* clone() const;
