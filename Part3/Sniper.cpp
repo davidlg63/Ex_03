@@ -31,8 +31,8 @@ namespace mtm
         this->ammo+=Sniper_reload_amount;
     }
 
-    void Sniper::attack(const GridPoint attacker_point, const GridPoint target_point,
-            Matrix<std::shared_ptr<Character>>& board)
+    void Sniper::attack(const GridPoint attacker_point,const GridPoint target_point,
+                Matrix<std::shared_ptr<Character>>& board, int& cpp_counter, int& python_counter)
     {
         std::shared_ptr<Character> attacker = board(attacker_point.row, attacker_point.col);
         std::shared_ptr<Character> target = board(target_point.row, target_point.col);
@@ -44,7 +44,10 @@ namespace mtm
         shot_counter%3==0 ? target->setHealth(2*this->power)
                          : target->setHealth(this->power);
         this->ammo--;
-
+        if(target->getHealth() <= 0)
+        {
+            target->remove(target_point, board, cpp_counter, python_counter);
+        }
     }
 
     bool Sniper::isInRange(GridPoint src_coordinates, GridPoint dst_coordinates) const

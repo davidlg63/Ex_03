@@ -23,7 +23,8 @@ namespace mtm
     {}
 
     Game::Game(const mtm::Game &other) :
-    board(Dimensions(other.board.height(), other.board.width()), nullptr)
+    board(Dimensions(other.board.height(), other.board.width()), nullptr), cpp_counter(other.cpp_counter),
+    python_counter(other.python_counter)
     {
         this->board = other.board;
     }
@@ -97,10 +98,7 @@ namespace mtm
             throw OutOfAmmo();
         }
         
-        attacker->attack(src_coordinates, dst_coordinates, board);
-
-        board(src_coordinates.row, src_coordinates.col) = attacker->getHealth() == 0 ? nullptr : attacker;
-        board(dst_coordinates.row, dst_coordinates.col) = (target == nullptr||target->getHealth() == 0)?nullptr:target;
+        attacker->attack(src_coordinates, dst_coordinates, board, cpp_counter, python_counter);
     }
 
     std::ostream& operator<<(std::ostream& os, const Game& game)
@@ -122,6 +120,7 @@ namespace mtm
         }
 
         this->board(coordinates.row, coordinates.col) = character;
+        (character->askTeam() == CPP) ? cpp_counter++ : python_counter++;
     }
 
     void Game::move(const GridPoint & src_coordinates, const GridPoint & dst_coordinates)
@@ -198,7 +197,7 @@ namespace mtm
         }
         return result;
     }
-    
+
     bool isIllegalInitialization(units_t health, units_t ammo, units_t range, units_t power)
     {
         return (health <= 0 || ammo<0 || range < 0 || power < 0);

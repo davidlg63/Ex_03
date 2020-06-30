@@ -30,7 +30,8 @@ namespace mtm
         this->ammo+=medic_reload_amount;
     }
 
-    void Medic::attack(const GridPoint attacker, const GridPoint target, Matrix<std::shared_ptr<Character>>& board)
+    void Medic::attack(const GridPoint attacker,const GridPoint target, Matrix<std::shared_ptr<Character>>& board,
+            int& cpp_counter, int& python_counter)
     {
         if (attacker == target || board(target.row, target.col) == nullptr)
         {
@@ -43,6 +44,10 @@ namespace mtm
         }
         board(target.row,target.col)->setHealth(this->power);
         this->ammo--;
+        if(board(target.row, target.col)->getHealth() <= 0)
+        {
+            board(target.row, target.col)->remove(target, board, cpp_counter, python_counter);
+        }
     }
 
     bool Medic::isInRange(GridPoint src_coordinates, GridPoint dst_coordinates) const

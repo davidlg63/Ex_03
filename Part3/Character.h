@@ -26,7 +26,9 @@ namespace mtm
         virtual void reload() = 0;
         virtual char toChar() const = 0;
         virtual void attack(const GridPoint attacker,const GridPoint target,
-                Matrix<std::shared_ptr<Character>>& board) = 0;
+                Matrix<std::shared_ptr<Character>>& board, int& cpp_counter, int& python_counter) = 0;
+        void remove(const GridPoint& coordinate, Matrix<std::shared_ptr<Character>>& board,
+                int& cpp_counter, int& python_counter);
 
         Team askTeam() const
         {
