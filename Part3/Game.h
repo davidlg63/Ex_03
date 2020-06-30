@@ -15,12 +15,11 @@ namespace mtm
     class Game
     {
     private:
-    Matrix<std::shared_ptr<mtm::Character>> board;
-    int cpp_counter, python_counter;
-
-    bool isInBoard(const GridPoint& coordinate) const;
-    bool isCellEmpty(const GridPoint& coordinate) const;
-    const std::string toCharArray() const;
+        Matrix<std::shared_ptr<mtm::Character>> board;
+        int cpp_counter, python_counter;
+        bool isInBoard(const GridPoint& coordinate) const;
+        bool isCellEmpty(const GridPoint& coordinate) const;
+        const std::string toCharArray() const;
     public:
         Game(int height, int width);
         ~Game() = default;

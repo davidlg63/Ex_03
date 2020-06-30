@@ -55,4 +55,9 @@ namespace mtm
         return src_coordinates.distance(src_coordinates,dst_coordinates)<=range;
     }
 
+    bool Medic::isStepLegal(const GridPoint &start, const GridPoint &end) const
+    {
+        return (GridPoint::distance(start, end) <= max_step_amount);
+    }
+
 }

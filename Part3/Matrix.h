@@ -7,7 +7,7 @@
 #include "Auxiliaries.h"
 #include <string>
 #include <memory>
-#include "Exception.h"
+#include "Exceptions.h"
 
 namespace  mtm
 {

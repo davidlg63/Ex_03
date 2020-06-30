@@ -4,7 +4,7 @@
 
 #include "Game.h"
 #include "Auxiliaries.h"
-#include "Exception.h"
+#include "Exceptions.h"
 #include "Character.h"
 #include "Soldier.h"
 #include "Medic.h"
@@ -42,7 +42,6 @@ namespace mtm
         {
             std::cout << memory_error.what();
         }
-        this->board = other.board;
         this->cpp_counter = other.cpp_counter;
         this->python_counter = other.python_counter;
     }
@@ -153,7 +152,7 @@ namespace mtm
 
     void Game::move(const GridPoint & src_coordinates, const GridPoint & dst_coordinates)
     {
-        if (!isInBoard(dst_coordinates))
+        if (!isInBoard(src_coordinates) || !isInBoard(dst_coordinates))
         {
             throw IllegalCell();
         }
@@ -161,7 +160,7 @@ namespace mtm
         {
             throw CellEmpty();
         }
-        if (!(board(src_coordinates.row,src_coordinates.col)->isInRange(src_coordinates,dst_coordinates)))
+        if (!(board(src_coordinates.row,src_coordinates.col)->isStepLegal(src_coordinates,dst_coordinates)))
         {
             throw MoveTooFar();
         }

@@ -56,4 +56,8 @@ namespace mtm
         return (distance <= this->range && distance >= this->min_range);
     }
 
+    bool Sniper::isStepLegal(const GridPoint &start, const GridPoint &end) const
+    {
+        return (GridPoint::distance(start, end) <= max_step_amount);
+    }
 }

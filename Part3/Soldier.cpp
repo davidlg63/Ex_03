@@ -14,11 +14,14 @@ namespace mtm{
     }
 
     Soldier::Soldier(std::shared_ptr<Soldier> other) :
-            Character(other->askTeam(), other->getHealth(), other->getAmmo(),
-                      other->getRange(), other->getPower()), collateral_dmg_range(ceil(other->getRange()/3))
+            Character(other->askTeam(), other->getHealth(), other->getAmmo(), other->getRange(), other->getPower()),
+            collateral_dmg_range(ceil(other->getRange()/3))
     {
         print_representation = (team == PYTHON) ? 's' : 'S';
     }
+
+    Soldier::Soldier(const Soldier &other) : Soldier(other.team, other.health, other.ammo, other.range, other.power)
+    {}
 
 
     std::shared_ptr<Character> Soldier::clone() const
@@ -80,6 +83,11 @@ namespace mtm{
         return (distance <= this->range);
     }
 
+    bool Soldier::isStepLegal(const GridPoint &start, const GridPoint &end) const
+    {
+        return (GridPoint::distance(start, end) <= max_step_amount);
+    }
+
     bool Soldier::isValidTarget(const GridPoint& attacker, const GridPoint& target, const
     Matrix<std::shared_ptr<Character>>& board)
     {
@@ -92,6 +100,4 @@ namespace mtm{
     {
         return (attacker.row == target.row || attacker.col == target.col);
     }
-
-
 }

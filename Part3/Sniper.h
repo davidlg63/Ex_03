@@ -13,6 +13,7 @@ namespace mtm
     {
         int min_range;
         static const int Sniper_reload_amount = 2;
+        static const int max_step_amount = 4;
         char print_representation;
         int shot_counter;
         std::shared_ptr<Character> clone() const;
@@ -25,7 +26,8 @@ namespace mtm
         void reload() override;
         void attack(const GridPoint attacker,const GridPoint target,
                     Matrix<std::shared_ptr<Character>>& board, int& cpp_counter, int& python_counter) override;
-        bool isInRange ( GridPoint src_coordinates, GridPoint dst_coordinates) const override ;
+        bool isInRange ( GridPoint src_coordinates, GridPoint dst_coordinates) const override;
+        bool isStepLegal(const GridPoint& start, const GridPoint& end) const override;
 
         char toChar() const override
         {

@@ -23,6 +23,7 @@ namespace mtm
         virtual ~Character() = default;
         Character& operator=(const std::shared_ptr<Character> some_character);
         virtual bool isInRange(const GridPoint src_coordinates,const GridPoint dst_coordinates) const = 0;
+        virtual bool isStepLegal(const GridPoint& start, const GridPoint& end) const = 0;
         virtual void reload() = 0;
         virtual char toChar() const = 0;
         virtual void attack(const GridPoint attacker,const GridPoint target,
