@@ -2,36 +2,28 @@
 // Created by X on 28/06/2020.
 //
 
-#include "Character.h"
+#include "Sniper.h"
 namespace mtm
 {
 
-    Sniper::Sniper(Team team, units_t  unit_health, units_t unit_ammo, units_t unit_power, units_t unit_range):
-            Character(team, unit_health, unit_ammo, unit_power, unit_range), shot_counter(0)
+    Sniper::Sniper(Team team, units_t  unit_health, units_t unit_ammo, units_t unit_range, units_t unit_power):
+            Character(team, unit_health, unit_ammo, unit_range, unit_power), shot_counter(0)
     {
-        Sniper_reload_amount=2;
-        min_range=(this->getRange()/2);
-        if (team==PYTHON) {
-            this->print_representation = 'n';
-        }
-        this->print_representation ='N';
+        min_range=ceil(((double)(this->getRange())/2));
+        print_representation = (team == PYTHON) ? 'n' : 'N';
     }
 
     Sniper::Sniper(std::shared_ptr<Sniper> some_character) :
             Character(some_character->askTeam(), some_character->getHealth(), some_character->getAmmo(),
-                      some_character->getPower(), some_character->getRange()), shot_counter(0)
+                      some_character->getRange(), some_character->getPower()), shot_counter(0)
     {
-        Sniper_reload_amount=2;
-        min_range=(this->getRange()/2);
-        if (team==PYTHON) {
-            this->print_representation = 'n';
-        }
-        this->print_representation ='N';
+        min_range=ceil(((double)(this->getRange())/2));
+        print_representation = (team == PYTHON) ? 'n' : 'N';
     }
 
     std::shared_ptr<Character> Sniper::clone() const
     {
-        return   std::shared_ptr<Character>(new Sniper(*this));
+        return std::make_shared<Sniper>(*this);
     }
 
     void Sniper::reload()
@@ -39,13 +31,23 @@ namespace mtm
         this->ammo+=Sniper_reload_amount;
     }
 
-    void Sniper::attack(const GridPoint attacker, const GridPoint target, Matrix<std::shared_ptr<Character>> board)
+    void Sniper::attack(const GridPoint attacker_point,const GridPoint target_point,
+                Matrix<std::shared_ptr<Character>>& board, int& cpp_counter, int& python_counter)
     {
+        std::shared_ptr<Character> attacker = board(attacker_point.row, attacker_point.col);
+        std::shared_ptr<Character> target = board(target_point.row, target_point.col);
+        if(target == nullptr || attacker->askTeam() == target->askTeam())
+        {
+            throw IllegalTarget();
+        }
         this->shot_counter++;
-        shot_counter%3==0?  board(attacker.row,attacker.col)->setHealth(2*this->power)
-                         : board(attacker.row,attacker.col)->setHealth(this->power);
+        shot_counter%3==0 ? target->setHealth(2*this->power)
+                         : target->setHealth(this->power);
         this->ammo--;
-
+        if(target->getHealth() <= 0)
+        {
+            target->remove(target_point, board, cpp_counter, python_counter);
+        }
     }
 
     bool Sniper::isInRange(GridPoint src_coordinates, GridPoint dst_coordinates) const
