@@ -7,7 +7,8 @@
 namespace mtm{
 
     Soldier::Soldier(Team team, units_t  unit_health, units_t unit_ammo, units_t unit_range, units_t unit_power) :
-            Character(team, unit_health, unit_ammo, unit_range, unit_power),collateral_dmg_range(ceil(unit_range/3))
+            Character(team, unit_health, unit_ammo, unit_range, unit_power),
+            collateral_dmg_range(ceil((double)unit_range/3))
     {
         print_representation = (team == PYTHON) ? 's' : 'S';
     }
@@ -20,15 +21,20 @@ namespace mtm{
     }
 
 
-    Character* Soldier::clone() const
+    std::shared_ptr<Character> Soldier::clone() const
     {
-        return new Soldier(*this);
+        return std::make_shared<Soldier>(*this);
     }
 
     void Soldier::attack(const GridPoint attacker,const GridPoint target,
                      Matrix<std::shared_ptr<Character>>& board, int& cpp_counter, int& python_counter)
     {
-        if(board(target.row,target.col)!=nullptr)
+        if(!isInSameRowOrColumn(attacker, target, board))
+        {
+            throw IllegalTarget();
+        }
+        this->ammo--;
+        if(isValidTarget(attacker, target, board))
         {
             board(target.row,target.col)->setHealth(this->power);
             if(board(target.row, target.col)->getHealth() <= 0)
@@ -36,7 +42,6 @@ namespace mtm{
                 board(target.row, target.col)->remove(target, board, cpp_counter, python_counter);
             }
         }
-        this->ammo--;
         for (int i = target.row - collateral_dmg_range; i <= target.row + collateral_dmg_range; i++)
         {
             for ( int j= target.col - collateral_dmg_range; j <= target.col + collateral_dmg_range; j++)
@@ -47,8 +52,7 @@ namespace mtm{
                 }
                 GridPoint collateral_damage(i,j);
                 int distance = GridPoint::distance(collateral_damage,target);
-                if (distance != 0 && distance<=collateral_dmg_range && board(i,j)
-                    != nullptr && board(i,j)->askTeam()!=team)
+                if (distance != 0 && distance<=collateral_dmg_range && isValidTarget(attacker,collateral_damage,board))
                 {
                     attackHalfHealth(board(i,j));
                     if (board(i,j)->getHealth()<=0)
@@ -74,6 +78,19 @@ namespace mtm{
     {
         int distance = GridPoint::distance(src_coordinates,dst_coordinates);
         return (distance <= this->range);
+    }
+
+    bool Soldier::isValidTarget(const GridPoint& attacker, const GridPoint& target, const
+    Matrix<std::shared_ptr<Character>>& board)
+    {
+        return(board(target.row, target.col) != nullptr && !(attacker == target)
+        && board(attacker.row, attacker.col)->askTeam() != board(target.row, target.col)->askTeam());
+    }
+
+    bool Soldier::isInSameRowOrColumn(const GridPoint &attacker, const GridPoint &target,
+                                      const Matrix<std::shared_ptr<Character>> &board)
+    {
+        return (attacker.row == target.row || attacker.col == target.col);
     }
 
 

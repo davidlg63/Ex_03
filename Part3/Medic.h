@@ -14,7 +14,7 @@ namespace  mtm
     {
         static const int medic_reload_amount = 5;
         char print_representation;
-        Character* clone() const;
+        std::shared_ptr<Character> clone() const;
     public:
         Medic() = delete ;
         Medic(Team team, units_t unit_health, units_t unit_ammo, units_t unit_range, units_t unit_power);

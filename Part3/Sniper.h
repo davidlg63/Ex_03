@@ -15,7 +15,7 @@ namespace mtm
         static const int Sniper_reload_amount = 2;
         char print_representation;
         int shot_counter;
-        Character* clone() const;
+        std::shared_ptr<Character> clone() const;
     public:
         Sniper() = delete;
         Sniper(Team team, units_t  unit_health, units_t unit_ammo, units_t unit_range, units_t unit_power);

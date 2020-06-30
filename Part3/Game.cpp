@@ -26,7 +26,25 @@ namespace mtm
     board(Dimensions(other.board.height(), other.board.width()), nullptr), cpp_counter(other.cpp_counter),
     python_counter(other.python_counter)
     {
+        try
+        {
+            for(int i = 0; i < board.height(); i++)
+            {
+                for(int j = 0; j < board.width(); j++)
+                {
+                    shared_ptr<Character> to_copy = other.board(i,j);
+                    shared_ptr<Character> data_copy = (to_copy == nullptr) ? nullptr : (to_copy->clone());
+                    this->board(i,j) = data_copy;
+                }
+            }
+        }
+        catch(std::bad_alloc& memory_error)
+        {
+            std::cout << memory_error.what();
+        }
         this->board = other.board;
+        this->cpp_counter = other.cpp_counter;
+        this->python_counter = other.python_counter;
     }
 
     Game& Game::operator=(const Game& other)
@@ -39,7 +57,15 @@ namespace mtm
         Game temp(other.board.height(), other.board.width());
         try
         {
-            temp.board = other.board;
+            for(int i = 0; i < other.board.height(); i++)
+            {
+                for(int j = 0; j < other.board.width(); j++)
+                {
+                    shared_ptr<Character> to_copy = other.board(i,j);
+                    shared_ptr<Character> data_copy = (to_copy == nullptr) ? nullptr : (to_copy->clone());
+                    temp.board(i,j) = data_copy;
+                }
+            }
         }
         catch(std::bad_alloc& memory_error)
         {
@@ -48,6 +74,8 @@ namespace mtm
         }
 
         this->board = temp.board;
+        this->cpp_counter = temp.cpp_counter;
+        this->python_counter = temp.python_counter;
         return *this;
     }
     
@@ -76,8 +104,6 @@ namespace mtm
     
     void Game::attack(const GridPoint & src_coordinates, const GridPoint & dst_coordinates)
     {
-        shared_ptr<Character> attacker = board(src_coordinates.row, src_coordinates.col);
-        shared_ptr<Character> target = board(dst_coordinates.row, dst_coordinates.col);
         if(!(isInBoard(src_coordinates)) || !(isInBoard(dst_coordinates)))
         {
             throw IllegalCell();
@@ -92,6 +118,8 @@ namespace mtm
         {
             throw OutOfRange();
         }
+        shared_ptr<Character> attacker = board(src_coordinates.row, src_coordinates.col);
+        shared_ptr<Character> target = board(dst_coordinates.row, dst_coordinates.col);
 
         if(attacker->isOutOfAmmo())
         {

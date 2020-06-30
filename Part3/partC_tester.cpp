@@ -45,13 +45,13 @@ bool checkGameContainsPlayerAt(Game& game, GridPoint point){
     try{
         game.move(point, point);
     }
-    catch(CellOccupied&){
-        return true;
-    }
-    catch(...){
+    catch(CellEmpty&){
         return false;
     }
-    return false;
+    catch (GameException&){
+        return true;
+    }
+    return true;
 }
 
 bool testErrorNames(){
@@ -64,9 +64,9 @@ bool testErrorNames(){
 
     ASSERT_ERROR_WITH_MESSAGE(Game(0,0), IllegalArgument, "A game related error has occurred: IllegalArgument");
     ASSERT_ERROR_WITH_MESSAGE(testGame.addCharacter(GridPoint(-1,-1), testCharacter1), IllegalCell, "A game related error has occurred: IllegalCell");
-    ASSERT_ERROR_WITH_MESSAGE(testGame.move(GridPoint(0,0), GridPoint(0,0)), CellEmpty, "A game related error has occurred: CellEmpty");
-    ASSERT_ERROR_WITH_MESSAGE(testGame.move(GridPoint(1,1), GridPoint(9,9)), MoveTooFar, "A game related error has occurred: MoveTooFar");
-    ASSERT_ERROR_WITH_MESSAGE(testGame.move(GridPoint(1,1), GridPoint(1,1)), CellOccupied, "A game related error has occurred: CellOccupied");
+    ASSERT_ERROR_WITH_MESSAGE(testGame.move(GridPoint(1,1), GridPoint(9,9)), MoveTooFar, "A game related error has "
+                                                                                          "occurred: MoveTooFar");
+    ASSERT_ERROR_WITH_MESSAGE(testGame.move(GridPoint(1,1), GridPoint(3,1)), CellOccupied, "A game related error has occurred: CellOccupied");
     ASSERT_ERROR_WITH_MESSAGE(testGame.attack(GridPoint(1,1), GridPoint(3,3)), OutOfRange, "A game related error has occurred: OutOfRange");
     ASSERT_ERROR_WITH_MESSAGE(testGame.attack(GridPoint(1,1), GridPoint(1,2)), OutOfAmmo, "A game related error has occurred: OutOfAmmo");
     ASSERT_ERROR_WITH_MESSAGE(testGame.attack(GridPoint(3,1), GridPoint(3,1)), IllegalTarget, "A game related error has occurred: IllegalTarget");
@@ -103,13 +103,12 @@ bool testCopyConstructor(){
     // Check that (2,2) is empty and that (2,1) is occupied in g1
     ASSERT_TEST(!checkGameContainsPlayerAt(g1, GridPoint(2,2)));
     ASSERT_TEST(checkGameContainsPlayerAt(g1, GridPoint(2,1)));
-    
+
     // Check that (2,2) is occupied and that (2,1) is empty in g2
     ASSERT_TEST(checkGameContainsPlayerAt(g2, GridPoint(2,2)));
     ASSERT_TEST(!checkGameContainsPlayerAt(g2, GridPoint(2,1)));
 
     ASSERT_NO_ERROR(g1.reload(GridPoint(2,1)));
-
     ASSERT_NO_ERROR(g1.attack(GridPoint(2,1), GridPoint(2,1)));
     ASSERT_ERROR(g2.attack(GridPoint(2,2), GridPoint(2,2)), OutOfAmmo);
 
@@ -135,7 +134,7 @@ bool testAssignemntOperator(){
     // Check that (2,2) is empty and that (2,1) is occupied in g1
     ASSERT_TEST(!checkGameContainsPlayerAt(g1, GridPoint(2,2)));
     ASSERT_TEST(checkGameContainsPlayerAt(g1, GridPoint(2,1)));
-    
+
     // Check that (2,2) is occupied and that (2,1) is empty in g2
     ASSERT_TEST(checkGameContainsPlayerAt(g2, GridPoint(2,2)));
     ASSERT_TEST(!checkGameContainsPlayerAt(g2, GridPoint(2,1)));
@@ -178,7 +177,7 @@ bool testMakeCharacter(){
     ASSERT_ERROR(Game::makeCharacter(SOLDIER, CPP, 1, 0, -1, 0), IllegalArgument);
     ASSERT_ERROR(Game::makeCharacter(SOLDIER, CPP, 1, -1, 0, 0), IllegalArgument);
     ASSERT_ERROR(Game::makeCharacter(SOLDIER, CPP, -1, 0, 0, 0), IllegalArgument);
-    
+
     ASSERT_NO_ERROR(Game::makeCharacter(SOLDIER, CPP, 1, 0, 0, 0));
 
     return true;
@@ -207,7 +206,7 @@ bool testMove(){
 
     ASSERT_ERROR(game.move(GridPoint(0,0), GridPoint(5,5)), MoveTooFar);
 
-    ASSERT_ERROR(game.move(GridPoint(0,0), GridPoint(0,0)), CellOccupied);
+    //ASSERT_NO_ERROR(game.move(GridPoint(0,0), GridPoint(0,0)));
     ASSERT_ERROR(game.move(GridPoint(0,0), GridPoint(1,1)), CellOccupied);
     ASSERT_ERROR(game.move(GridPoint(1,1), GridPoint(0,0)), CellOccupied);
 
@@ -220,7 +219,10 @@ bool testMove(){
     GridPoint selected(9,9);
     for (int i = 0; i < rows; i++){
         for (int j = 0; j < cols; j++){
-            if (GridPoint::distance(GridPoint(i,j), selected) <= 3){
+            if (selected == GridPoint(i,j)){
+                //ASSERT_NO_ERROR(game.move(selected, GridPoint(i,j)));
+            }
+            else if (GridPoint::distance(GridPoint(i,j), selected) <= 3){
                 ASSERT_ERROR(game.move(selected, GridPoint(i,j)), CellOccupied);
             }
             else{
@@ -237,7 +239,10 @@ bool testMove(){
     }
     for (int i = 0; i < rows; i++){
         for (int j = 0; j < cols; j++){
-            if (GridPoint::distance(GridPoint(i,j), selected) <= 5){
+            if (selected == GridPoint(i,j)){
+                //ASSERT_NO_ERROR(game.move(selected, GridPoint(i,j)));
+            }
+            else if (GridPoint::distance(GridPoint(i,j), selected) <= 5){
                 ASSERT_ERROR(game.move(selected, GridPoint(i,j)), CellOccupied);
             }
             else{
@@ -254,7 +259,10 @@ bool testMove(){
     }
     for (int i = 0; i < rows; i++){
         for (int j = 0; j < cols; j++){
-            if (GridPoint::distance(GridPoint(i,j), selected) <= 4){
+            if (selected == GridPoint(i,j)){
+                //ASSERT_NO_ERROR(game.move(selected, GridPoint(i,j)));
+            }
+            else if (GridPoint::distance(GridPoint(i,j), selected) <= 4){
                 ASSERT_ERROR(game.move(selected, GridPoint(i,j)), CellOccupied);
             }
             else{
@@ -356,9 +364,22 @@ bool testAttackSoldier(){
     ASSERT_NO_ERROR(game.addCharacter(selected, Game::makeCharacter(SOLDIER, CPP, 1, 0, range, 0)));
     for (int i = 0; i < rows; i++){
         for (int j = 0; j < cols; j++){
+            // If attacking in range and in same row/col, then expect OutOfAmmo
             if (GridPoint::distance(GridPoint(i,j), selected) <= range && (i==selected.row || j==selected.col)){
                 ASSERT_ERROR(game.attack(selected, GridPoint(i,j)), OutOfAmmo);
             }
+                // If attacking in range but not in same row/col, then expect OutOfAmmo (since preceds IllegalTarget)
+            else if (GridPoint::distance(GridPoint(i,j), selected) <= range && (i!=selected.row && j!=selected.col)){
+                ASSERT_ERROR(game.attack(selected, GridPoint(i,j)), OutOfAmmo);
+                // However, if we reload the selected attacker then we expect IllegalTarget
+                ASSERT_NO_ERROR(game.reload(selected));
+                ASSERT_ERROR(game.attack(selected, GridPoint(i,j)), IllegalTarget);
+                // Waste the generated ammo (no affect to hp since all on same team)
+                ASSERT_NO_ERROR(game.attack(selected, selected));
+                ASSERT_NO_ERROR(game.attack(selected, selected));
+                ASSERT_NO_ERROR(game.attack(selected, selected));
+            }
+                // Else if attacking outside of range, then expect OutOfRange
             else{
                 ASSERT_ERROR(game.attack(selected, GridPoint(i,j)), OutOfRange);
             }
@@ -370,7 +391,7 @@ bool testAttackSoldier(){
 }
 
 bool testAttackMedic(){
-    
+
     int rows = 20;
     int cols = 20;
 
@@ -416,14 +437,14 @@ bool testAttackMedic(){
     game = Game(rows,cols);
     int range = 7;
     GridPoint selected(9,9);
-    ASSERT_NO_ERROR(game.addCharacter(selected, Game::makeCharacter(MEDIC, CPP, 1, 0, range, 0)));
+    ASSERT_NO_ERROR(game.addCharacter(selected, Game::makeCharacter(MEDIC, CPP, 1, rows * cols + 1, range, 0)));
     for (int i = 0; i < rows; i++){
         for (int j = 0; j < cols; j++){
             if (i == selected.row && j == selected.col){
                 continue;
             }
             if (GridPoint::distance(GridPoint(i,j), selected) <= range){
-                ASSERT_ERROR(game.attack(selected, GridPoint(i,j)), OutOfAmmo);
+                ASSERT_ERROR(game.attack(selected, GridPoint(i,j)), IllegalTarget);
             }
             else{
                 ASSERT_ERROR(game.attack(selected, GridPoint(i,j)), OutOfRange);
@@ -441,7 +462,7 @@ bool testAttackSniper(){
     int cols = 20;
 
     Game game = Game(rows,cols);
-    
+
     game = Game(rows,cols);
     int range = 7;
     GridPoint selected(9,9);
@@ -580,7 +601,7 @@ bool testOutput(){
     ASSERT_NO_ERROR(game.addCharacter(GridPoint(5,2), Game::makeCharacter(MEDIC, PYTHON, 24, 0, 0, 0)));
     ASSERT_NO_ERROR(game.addCharacter(GridPoint(3,7), Game::makeCharacter(SNIPER, CPP, 24, 0, 0, 0)));
     ASSERT_NO_ERROR(game.addCharacter(GridPoint(9,3), Game::makeCharacter(SNIPER, PYTHON, 24, 0, 0, 0)));
-    
+
     std::string expected = \
     "*****************\n\
 | |S| | | | | | |\n\
@@ -649,36 +670,36 @@ bool testWinningTeam(){
 
 bool testGame1(){
 
-	Game g1(8,8);
+    Game g1(8,8);
 
-	ASSERT_NO_ERROR(g1.addCharacter(GridPoint(1,1), Game::makeCharacter(CharacterType::MEDIC, Team::CPP, 10, 2, 4, 5)));
-	ASSERT_NO_ERROR(g1.addCharacter(GridPoint(1,4), Game::makeCharacter(CharacterType::SNIPER, Team::CPP, 10, 2, 4, 5)));
-	ASSERT_NO_ERROR(g1.addCharacter(GridPoint(6,1), Game::makeCharacter(CharacterType::SOLDIER, Team::PYTHON, 10, 2, 4, 5)));
-	ASSERT_NO_ERROR(g1.addCharacter(GridPoint(6,4), Game::makeCharacter(CharacterType::MEDIC, Team::PYTHON, 10, 2, 4, 5)));
-	ASSERT_NO_ERROR(g1.move(GridPoint(1,1), GridPoint(1,2)));
+    ASSERT_NO_ERROR(g1.addCharacter(GridPoint(1,1), Game::makeCharacter(CharacterType::MEDIC, Team::CPP, 10, 2, 4, 5)));
+    ASSERT_NO_ERROR(g1.addCharacter(GridPoint(1,4), Game::makeCharacter(CharacterType::SNIPER, Team::CPP, 10, 2, 4, 5)));
+    ASSERT_NO_ERROR(g1.addCharacter(GridPoint(6,1), Game::makeCharacter(CharacterType::SOLDIER, Team::PYTHON, 10, 2, 4, 5)));
+    ASSERT_NO_ERROR(g1.addCharacter(GridPoint(6,4), Game::makeCharacter(CharacterType::MEDIC, Team::PYTHON, 10, 2, 4, 5)));
+    ASSERT_NO_ERROR(g1.move(GridPoint(1,1), GridPoint(1,2)));
 
     ASSERT_ERROR(g1.attack(GridPoint(1,4), GridPoint(1,2)), IllegalTarget);
     ASSERT_ERROR(g1.attack(GridPoint(1,4), GridPoint(6,1)), OutOfRange);
     ASSERT_NO_ERROR(g1.move(GridPoint(1,4), GridPoint(3,2)));
     ASSERT_ERROR(g1.attack(GridPoint(1,4), GridPoint(6,4)), CellEmpty);
-	ASSERT_NO_ERROR(g1.attack(GridPoint(3,2), GridPoint(6,1)));
+    ASSERT_NO_ERROR(g1.attack(GridPoint(3,2), GridPoint(6,1)));
     ASSERT_NO_ERROR(g1.move(GridPoint(6,1), GridPoint(4,2)));
     ASSERT_ERROR(g1.attack(GridPoint(3,2), GridPoint(4,2)), OutOfRange);
     ASSERT_NO_ERROR(g1.move(GridPoint(4,2), GridPoint(6,2)));
     ASSERT_NO_ERROR(g1.attack(GridPoint(3,2), GridPoint(6,2)));
-	ASSERT_ERROR(g1.move(GridPoint(6,2), GridPoint(6,1)), CellEmpty);
+    ASSERT_ERROR(g1.move(GridPoint(6,2), GridPoint(6,1)), CellEmpty);
     ASSERT_NO_ERROR(g1.move(GridPoint(3,2), GridPoint(3,4)));
     ASSERT_ERROR(g1.attack(GridPoint(3,4), GridPoint(6,4)), OutOfAmmo);
     ASSERT_ERROR(g1.attack(GridPoint(6,4), GridPoint(6,4)), IllegalTarget);
 
-	Team winning_team = Team::PYTHON;
-	
-	ASSERT_TEST(!g1.isOver(&winning_team));
+    Team winning_team = Team::PYTHON;
+
+    ASSERT_TEST(!g1.isOver(&winning_team));
     ASSERT_TEST(winning_team == PYTHON);
 
-	ASSERT_NO_ERROR(g1.reload(GridPoint(3,4)));
-	ASSERT_NO_ERROR(g1.attack(GridPoint(3,4), GridPoint(6,4)));
-	ASSERT_ERROR(g1.move(GridPoint(6,4), GridPoint(6,1)), CellEmpty);
+    ASSERT_NO_ERROR(g1.reload(GridPoint(3,4)));
+    ASSERT_NO_ERROR(g1.attack(GridPoint(3,4), GridPoint(6,4)));
+    ASSERT_ERROR(g1.move(GridPoint(6,4), GridPoint(6,1)), CellEmpty);
     ASSERT_TEST(g1.isOver(&winning_team));
     ASSERT_TEST(winning_team == CPP);
 
@@ -688,24 +709,24 @@ bool testGame1(){
 
 bool testGame2(){
 
-	Game g1(5,10);
-	ASSERT_NO_ERROR(g1.addCharacter(GridPoint(3,0), Game::makeCharacter(CharacterType::SOLDIER, Team::CPP, 20, 0, 3, 5)));
-	ASSERT_NO_ERROR(g1.addCharacter(GridPoint(2,6), Game::makeCharacter(CharacterType::SNIPER, Team::PYTHON, 10, 2, 4, 5)));
-	ASSERT_NO_ERROR(g1.addCharacter(GridPoint(3,8), Game::makeCharacter(CharacterType::SNIPER, Team::PYTHON, 10, 2, 4, 5)));
-	ASSERT_NO_ERROR(g1.addCharacter(GridPoint(3,6), Game::makeCharacter(CharacterType::MEDIC, Team::PYTHON, 10, 2, 4, 5)));
-	ASSERT_NO_ERROR(g1.addCharacter(GridPoint(4,6), Game::makeCharacter(CharacterType::MEDIC, Team::PYTHON, 10, 2, 4, 5)));
+    Game g1(5,10);
+    ASSERT_NO_ERROR(g1.addCharacter(GridPoint(3,0), Game::makeCharacter(CharacterType::SOLDIER, Team::CPP, 20, 0, 3, 5)));
+    ASSERT_NO_ERROR(g1.addCharacter(GridPoint(2,6), Game::makeCharacter(CharacterType::SNIPER, Team::PYTHON, 10, 2, 4, 5)));
+    ASSERT_NO_ERROR(g1.addCharacter(GridPoint(3,8), Game::makeCharacter(CharacterType::SNIPER, Team::PYTHON, 10, 2, 4, 5)));
+    ASSERT_NO_ERROR(g1.addCharacter(GridPoint(3,6), Game::makeCharacter(CharacterType::MEDIC, Team::PYTHON, 10, 2, 4, 5)));
+    ASSERT_NO_ERROR(g1.addCharacter(GridPoint(4,6), Game::makeCharacter(CharacterType::MEDIC, Team::PYTHON, 10, 2, 4, 5)));
 
     ASSERT_ERROR(g1.attack(GridPoint(3,0), GridPoint(3,6)), OutOfRange);
-	ASSERT_ERROR(g1.move(GridPoint(3,0), GridPoint(3,4)), MoveTooFar);
-	
-	Game g2 = g1;
-	
-	ASSERT_NO_ERROR(g1.move(GridPoint(3,0), GridPoint(3,3)));
-	ASSERT_ERROR(g1.attack(GridPoint(3,3), GridPoint(3,6)), OutOfAmmo);
+    ASSERT_ERROR(g1.move(GridPoint(3,0), GridPoint(3,4)), MoveTooFar);
+
+    Game g2 = g1;
+
+    ASSERT_NO_ERROR(g1.move(GridPoint(3,0), GridPoint(3,3)));
+    ASSERT_ERROR(g1.attack(GridPoint(3,3), GridPoint(3,6)), OutOfAmmo);
     ASSERT_ERROR(g1.reload(GridPoint(3,2)), CellEmpty);
     ASSERT_ERROR(g1.reload(GridPoint(3,-3)), IllegalCell);
     ASSERT_ERROR(g1.reload(GridPoint(3,13)), IllegalCell);
-	ASSERT_NO_ERROR(g1.reload(GridPoint(3,3)));
+    ASSERT_NO_ERROR(g1.reload(GridPoint(3,3)));
     ASSERT_NO_ERROR(g1.attack(GridPoint(3,3), GridPoint(3,6)));
     ASSERT_NO_ERROR(g1.attack(GridPoint(3,3), GridPoint(3,6)));
     ASSERT_NO_ERROR(g1.attack(GridPoint(3,3), GridPoint(3,6)));

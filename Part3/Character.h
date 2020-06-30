@@ -16,10 +16,10 @@ namespace mtm
     protected:
         Team team;
         units_t health, ammo, power, range;
-        virtual Character* clone() const =0;
     public:
         Character() = delete;
         Character(Team team, units_t  unit_health, units_t unit_ammo, units_t unit_range, units_t unit_power);
+        Character(const Character& other);
         virtual ~Character() = default;
         Character& operator=(const std::shared_ptr<Character> some_character);
         virtual bool isInRange(const GridPoint src_coordinates,const GridPoint dst_coordinates) const = 0;
@@ -29,6 +29,7 @@ namespace mtm
                 Matrix<std::shared_ptr<Character>>& board, int& cpp_counter, int& python_counter) = 0;
         void remove(const GridPoint& coordinate, Matrix<std::shared_ptr<Character>>& board,
                 int& cpp_counter, int& python_counter);
+        virtual std::shared_ptr<Character> clone() const = 0;
 
         Team askTeam() const
         {

@@ -20,9 +20,9 @@ namespace mtm
         print_representation = (team == PYTHON) ? 'm' : 'M';
     }
 
-    Character* Medic::clone() const
+    std::shared_ptr<Character> Medic::clone() const
     {
-        return new Medic(*this);
+        return std::make_shared<Medic>(*this);
     }
 
     void Medic::reload()

@@ -6,6 +6,7 @@
 #define EX03_MATRIX_H
 #include "Auxiliaries.h"
 #include <string>
+#include <memory>
 #include "Exception.h"
 
 namespace  mtm
